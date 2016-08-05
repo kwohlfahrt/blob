@@ -3,50 +3,7 @@
 from numpy import zeros, ones, asarray
 from numpy.linalg import norm
 from math import pi
-
-try:
-    from pyfftw.interfaces.numpy_fft import fftn, ifftn
-except ImportError:
-    from numpy.fft import fftn, ifftn
-
-def gaussianPsf(shape, sigmas, dtype='float'):
-    from math import sqrt
-    from numpy import ones, ogrid, exp
-
-    output = ones(shape, dtype=dtype)
-    grids = ogrid[tuple(slice(None, s) for s in shape)]
-    for grid, sigma in zip(grids, sigmas):
-        # Pyramid function with integer operations
-        grid = (grid.size - abs(grid * 2 - grid.size)) // 2
-        values = 1 / (sigma * sqrt(2 * pi)) * exp(-( grid / sigma ) ** 2 / 2)
-        output *= values
-    return output
-
-def gaussianPsfHat(shape, sigmas, dtype='float'):
-    from numpy import ones, ogrid, exp
-
-    output = ones(shape, dtype=dtype)
-    grids = ogrid[tuple(slice(None, s) for s in shape)]
-    for grid, sigma in zip(grids, sigmas):
-        # Pyramid function with integer operations
-        grid = (grid.size - abs(grid * 2 - grid.size)) // 2
-        values = exp(-( grid * pi * sigma / grid.size ) ** 2 * 2)
-        output *= values
-    return output
-
-# Circular gradient. Add more padding methods?
-def gradient(data, axis, backward=False):
-    from numpy import roll
-    if backward:
-        return data - roll(data, -1, axis)
-    else:
-        return roll(data, 1, axis) - data
-
-def div(*data):
-    return sum(gradient(d, axis) for axis, d in enumerate(data))
-
-def laplacianOperator(data):
-    return div(*(gradient(data, a, backward=True) for a in range(data.ndim)))
+from scipy.ndimage.filters import gaussian_laplace
 
 def localMinima(data, threshold):
     from numpy import ones, roll, nonzero, transpose
@@ -68,13 +25,10 @@ def blobLOG(data, scales=range(1, 10, 1), threshold=-30):
 
     data = asarray(data)
     scales = asarray(scales)
-    data_hat = fftn(data)
 
     log = empty((len(scales),) + data.shape, dtype=data.dtype)
     for slog, scale in zip(log, scales):
-        blur = gaussianPsfHat(data.shape, repeat(scale), data.dtype)
-        blurred = ifftn(data_hat * blur).real
-        slog[...] = scale ** 2 * laplacianOperator(blurred)
+        slog[...] = scale ** 2 * gaussian_laplace(data, scale)
 
     peaks = localMinima(log, threshold=threshold)
     peaks[:, 0] = scales[peaks[:, 0]]
@@ -100,7 +54,8 @@ def circleIntersection(r1, r2, d):
                    * (d - r1 + r2) * (d + r1 + r2)) / 2)
 
 def findBlobs(img, scales=range(1, 10), threshold=30, max_overlap=0.05):
-    from numpy import ones, triu
+    from numpy import ones, triu, seterr
+    old_errs = seterr(invalid='ignore')
 
     peaks = blobLOG(img, scales=scales, threshold=-threshold)
     radii = peaks[:, 0]
@@ -121,6 +76,8 @@ def findBlobs(img, scales=range(1, 10), threshold=30, max_overlap=0.05):
                  | ((radii[:, None] == radii[None, :])
                     & triu(ones((len(peaks), len(peaks)), dtype='bool'))))
     ).any(axis=1)
+
+    seterr(**old_errs)
     return peaks[~delete]
 
 if __name__ == '__main__':
