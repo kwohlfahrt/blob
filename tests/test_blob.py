@@ -37,6 +37,16 @@ class TestGradient(TestCase):
         expected = [1, 1, 1, 2, 2, -3, 0]
         np.testing.assert_equal(blob.gradient(data, 0, True), expected)
 
+class TestDetection(TestCase):
+    def test_blobs(self):
+        image = np.zeros((128, 128), dtype='float')
+        image[20, 50] = 1
+        image[70:72, 10:12] = 1
+        peaks = [[20, 50], [71, 11]]
+
+        blobs = blob.findBlobs(image, scales=(1, 3), threshold=0.1)[:, 1:]
+        np.testing.assert_equal(blobs, peaks)
+
 if __name__ == "__main__":
     from unittest import main
     main()
