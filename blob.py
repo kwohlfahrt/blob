@@ -80,6 +80,12 @@ def findBlobs(img, scales=range(1, 10), threshold=30, max_overlap=0.05):
     seterr(**old_errs)
     return peaks[~delete]
 
+def peakEnclosed(peaks, shape, size=1):
+    from numpy import asarray
+
+    shape = asarray(shape)
+    return ((size <= peaks).all(axis=-1) & (size < (shape - peaks)).all(axis=-1))
+
 if __name__ == '__main__':
     from argparse import ArgumentParser
     from pathlib import Path
@@ -99,12 +105,15 @@ if __name__ == '__main__':
                        help="The scale for the points along each axis.")
     parser.add_argument("--format", choices={"csv", "pickle"}, default="csv",
                         help="The output format (for stdout)")
+    parser.add_argument("--edge", type=int, default=0,
+                        help="Minimum distance to edge allowed.")
 
     args = parser.parse_args()
 
     image = imread(str(args.image)).astype('float32')
     scale = asarray(args.scale) if args.scale else ones(image.ndim, dtype='int')
     blobs = findBlobs(image, range(*args.size), args.threshold)
+    blobs = blobs[peakEnclosed(blobs[:, 1:], shape=image.shape, size=args.edge)]
     if args.format == "csv":
         import csv
 
