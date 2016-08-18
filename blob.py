@@ -99,8 +99,6 @@ if __name__ == '__main__':
                         help="The range of sizes (in px) to search.")
     parser.add_argument("--threshold", type=float, default=5,
                         help="The minimum spot intensity")
-    parser.add_argument("--plot", action="store_true",
-                        help="Plot the extracted points on a maximum intensity projection.")
     parser.add_argument("--scale", nargs="*", type=float,
                        help="The scale for the points along each axis.")
     parser.add_argument("--format", choices={"csv", "pickle"}, default="csv",
@@ -126,13 +124,3 @@ if __name__ == '__main__':
         dump = partial(dump, protocol=HIGHEST_PROTOCOL)
 
         dump(blobs[:, 1:] * scale, sys.stdout.buffer)
-
-    if args.plot:
-        import matplotlib.pyplot as plt
-        from numpy import amax
-
-        proj = amax(image, axis=tuple(range(image.ndim - 2)))
-        fig, ax = plt.subplots(1, 1)
-        ax.imshow(proj, cmap="gray", interpolation="nearest")
-        ax.scatter(blobs[:, -1], blobs[:, -2], color="red", marker="+")
-        plt.show()
