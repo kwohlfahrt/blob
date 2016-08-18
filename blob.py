@@ -86,10 +86,11 @@ def peakEnclosed(peaks, shape, size=1):
     shape = asarray(shape)
     return ((size <= peaks).all(axis=-1) & (size < (shape - peaks)).all(axis=-1))
 
-if __name__ == '__main__':
+# For setuptools entry_points
+def main(args=None):
     from argparse import ArgumentParser
     from pathlib import Path
-    import sys
+    from sys import stdout, argv
 
     from tifffile import imread
 
@@ -106,7 +107,7 @@ if __name__ == '__main__':
     parser.add_argument("--edge", type=int, default=0,
                         help="Minimum distance to edge allowed.")
 
-    args = parser.parse_args()
+    args = parser.parse_args(argv[1:] if args is None else args)
 
     image = imread(str(args.image)).astype('float32')
     scale = asarray(args.scale) if args.scale else ones(image.ndim, dtype='int')
@@ -115,7 +116,7 @@ if __name__ == '__main__':
     if args.format == "csv":
         import csv
 
-        writer = csv.writer(sys.stdout, delimiter=' ')
+        writer = csv.writer(stdout, delimiter=' ')
         for blob in blobs:
             writer.writerow(blob[1:][::-1] * scale)
     elif args.format == "pickle":
@@ -123,4 +124,7 @@ if __name__ == '__main__':
         from functools import partial
         dump = partial(dump, protocol=HIGHEST_PROTOCOL)
 
-        dump(blobs[:, 1:] * scale, sys.stdout.buffer)
+        dump(blobs[:, 1:] * scale, stdout.buffer)
+
+if __name__ == "__main__":
+    main()
