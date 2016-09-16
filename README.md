@@ -14,4 +14,9 @@ Python 3, Scipy and Numpy
 
 ## Usage
 
-`blob --help` describes available options.
+`blob` is installed as the primary entry point to output blob locations in
+human- and machine-readable formats. The `--help` option provides usage details.
+
+`demo.py` is provided in the source repository to give a visual example using
+the Hubble Deep Field image (from [scikit-image](http://scikit-image.org)) as
+sample data. This script also requires [matplotlib](http://matplotlib.org).
