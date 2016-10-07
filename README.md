@@ -44,9 +44,9 @@ The demo script additionally requires [matplotlib][matplotlib], which is also
 available through [PyPI][pypi].
 
 [setuptools]: https://docs.python.org/3.3/install/#the-new-standard-distutils
-[Python]: https://python.org
-[Scipy]: https://scipy.org
-[Numpy]: https://www.numpy.org
+[python]: https://python.org
+[scipy]: https://scipy.org
+[numpy]: https://www.numpy.org
 [tifffile]: http://www.lfd.uci.edu/~gohlke/code/tifffile.py.html
 [matplotlib]: http://matplotlib.org
 [skimage]: http://scikit-image.org
