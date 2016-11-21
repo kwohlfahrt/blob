@@ -93,6 +93,8 @@ def plot(args):
     from pickle import load
 
     image = imread(str(args.image))
+    scale = asarray(args.scale) if args.scale else ones(image.ndim, dtype='int')
+
     if args.axes is not None:
         image = image.sum(tuple(args.axes))
 
@@ -102,7 +104,6 @@ def plot(args):
         with args.peaks.open("rb") as f:
             peaks = load(f)
 
-    scale = asarray(args.scale) if args.scale else ones(image.ndim, dtype='int')
     peaks = peaks / scale
     peaks = delete(peaks, args.axes, axis=1)
 
