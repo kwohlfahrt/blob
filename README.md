@@ -10,7 +10,7 @@ but extended to nD arrays and .tif images.
 human- and machine-readable formats. It takes a grayscale TIFF image and prints
 out blob coordinates in CSV format, for example:
 
-    > blob my_image.tif
+    > blob find my_image.tif
     ...
     661 309
     768 309
@@ -19,6 +19,9 @@ out blob coordinates in CSV format, for example:
 
     
 The `--help` option provides details of available options.
+
+For convenience, a plotting function is also provided: `blob plot image.tif
+peaks.csv`.
 
 `demo.py` is provided in the source repository to give a visual example using
 the Hubble Deep Field image (from [scikit-image][skimage]) as sample data.

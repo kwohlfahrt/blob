@@ -86,30 +86,41 @@ def peakEnclosed(peaks, shape, size=1):
     shape = asarray(shape)
     return ((size <= peaks).all(axis=-1) & (size < (shape - peaks)).all(axis=-1))
 
-# For setuptools entry_points
-def main(args=None):
-    from argparse import ArgumentParser
-    from pathlib import Path
-    from sys import stdout, argv
+def plot(args):
+    from tifffile import imread
+    import matplotlib.pyplot as plt
+    from numpy import loadtxt, delete
+    from pickle import load
 
+    image = imread(str(args.image))
+    if args.axes is not None:
+        image = image.sum(tuple(args.axes))
+
+    if args.peaks.suffix == ".csv":
+        peaks = loadtxt(str(args.peaks))[:, ::-1]
+    elif args.peaks.suffix == ".pickle":
+        with args.peaks.open("rb") as f:
+            peaks = load(f)
+
+    scale = asarray(args.scale) if args.scale else ones(image.ndim, dtype='int')
+    peaks = peaks / scale
+    peaks = delete(peaks, args.axes, axis=1)
+
+    fig, ax = plt.subplots(1, 1)
+    ax.imshow(image, cmap='gray')
+    ax.set_xticks([])
+    ax.set_yticks([])
+    ax.scatter(*peaks.T[::-1], edgecolor='red', facecolor='none')
+    plt.show()
+
+def find(args):
+    from sys import stdout
     from tifffile import imread
 
-    parser = ArgumentParser(description="Print a list of spots from an image")
-    parser.add_argument("image", type=Path, help="The image to process")
-    parser.add_argument("--size", type=int, nargs=2, default=(1, 1),
-                        help="The range of sizes (in px) to search.")
-    parser.add_argument("--threshold", type=float, default=5,
-                        help="The minimum spot intensity")
-    parser.add_argument("--scale", nargs="*", type=float,
-                       help="The scale for the points along each axis.")
-    parser.add_argument("--format", choices={"csv", "pickle"}, default="csv",
-                        help="The output format (for stdout)")
-    parser.add_argument("--edge", type=int, default=0,
-                        help="Minimum distance to edge allowed.")
-
-    args = parser.parse_args(argv[1:] if args is None else args)
-
     image = imread(str(args.image)).astype('float32')
+    if args.axes is not None:
+        image = image.sum(tuple(args.axes))
+
     scale = asarray(args.scale) if args.scale else ones(image.ndim, dtype='int')
     blobs = findBlobs(image, range(*args.size), args.threshold)
     blobs = blobs[peakEnclosed(blobs[:, 1:], shape=image.shape, size=args.edge)]
@@ -125,6 +136,41 @@ def main(args=None):
         dump = partial(dump, protocol=HIGHEST_PROTOCOL)
 
         dump(blobs[:, 1:] * scale, stdout.buffer)
+
+# For setuptools entry_points
+def main(args=None):
+    from argparse import ArgumentParser
+    from pathlib import Path
+    from sys import argv
+
+    parser = ArgumentParser(description="Find peaks in an nD image")
+    subparsers = parser.add_subparsers()
+
+    find_parser = subparsers.add_parser("find")
+    find_parser.add_argument("image", type=Path, help="The image to process")
+    find_parser.add_argument("--size", type=int, nargs=2, default=(1, 1),
+                             help="The range of sizes (in px) to search.")
+    find_parser.add_argument("--threshold", type=float, default=5,
+                             help="The minimum spot intensity")
+    find_parser.add_argument("--format", choices={"csv", "pickle"}, default="csv",
+                             help="The output format (for stdout)")
+    find_parser.add_argument("--edge", type=int, default=0,
+                             help="Minimum distance to edge allowed.")
+    find_parser.set_defaults(func=find)
+
+    plot_parser = subparsers.add_parser("plot")
+    plot_parser.add_argument("image", type=Path, help="The image to process")
+    plot_parser.add_argument("peaks", type=Path, help="The peaks to plot")
+    plot_parser.set_defaults(func=plot)
+
+    for p in (plot_parser, find_parser):
+        p.add_argument("--axes", type=int, nargs='+', default=None,
+                       help="The projection axes")
+        p.add_argument("--scale", nargs="*", type=float,
+                       help="The scale for the points along each axis.")
+
+    args = parser.parse_args(argv[1:] if args is None else args)
+    args.func(args)
 
 if __name__ == "__main__":
     main()
