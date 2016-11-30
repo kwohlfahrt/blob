@@ -98,11 +98,8 @@ def plot(args):
     image = imread(str(args.image))
     scale = asarray(args.scale) if args.scale else ones(image.ndim, dtype='int')
 
-    if args.axes is not None:
-        image = image.sum(tuple(args.axes))
-
     if args.peaks.suffix == ".csv":
-        peaks = loadtxt(str(args.peaks))[:, ::-1]
+        peaks = loadtxt(str(args.peaks))
     elif args.peaks.suffix == ".pickle":
         with args.peaks.open("rb") as f:
             peaks = load(f)
@@ -111,13 +108,15 @@ def plot(args):
                          .format(args.peaks.suffix))
 
     peaks = peaks / scale
-    peaks = delete(peaks, args.axes, axis=1)
+    if args.axes is not None:
+        image = image.sum(tuple(args.axes))
+        peaks = delete(peaks, args.axes, axis=1)
 
     fig, ax = plt.subplots(1, 1)
     ax.imshow(image, cmap='gray')
     ax.set_xticks([])
     ax.set_yticks([])
-    ax.scatter(*peaks.T[::-1], edgecolor='red', facecolor='none')
+    ax.scatter(*peaks.T, edgecolor='red', facecolor='none')
     if args.outfile is None:
         plt.show()
     else:
@@ -132,18 +131,21 @@ def find(args):
     scale = asarray(args.scale) if args.scale else ones(image.ndim, dtype='int')
     blobs = findBlobs(image, range(*args.size), args.threshold)
     blobs = blobs[peakEnclosed(blobs[:, 1:], shape=image.shape, size=args.edge)]
+    blobs = blobs[:, 1:][:, ::-1] # Remove scale, and reverse to xyz order
+    blobs = blobs * scale
+
     if args.format == "csv":
         import csv
 
         writer = csv.writer(stdout, delimiter=' ')
         for blob in blobs:
-            writer.writerow(blob[1:][::-1] * scale)
+            writer.writerow(blob)
     elif args.format == "pickle":
         from pickle import dump, HIGHEST_PROTOCOL
         from functools import partial
         dump = partial(dump, protocol=HIGHEST_PROTOCOL)
 
-        dump(blobs[:, 1:] * scale, stdout.buffer)
+        dump(blobs, stdout.buffer)
 
 # For setuptools entry_points
 def main(args=None):
