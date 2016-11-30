@@ -88,9 +88,12 @@ def peakEnclosed(peaks, shape, size=1):
 
 def plot(args):
     from tifffile import imread
-    import matplotlib.pyplot as plt
     from numpy import loadtxt, delete
     from pickle import load
+    import matplotlib
+    if args.outfile is not None:
+        matplotlib.use('Agg')
+    import matplotlib.pyplot as plt
 
     image = imread(str(args.image))
     scale = asarray(args.scale) if args.scale else ones(image.ndim, dtype='int')
@@ -112,7 +115,10 @@ def plot(args):
     ax.set_xticks([])
     ax.set_yticks([])
     ax.scatter(*peaks.T[::-1], edgecolor='red', facecolor='none')
-    plt.show()
+    if args.outfile is None:
+        plt.show()
+    else:
+        fig.savefig(str(args.outfile))
 
 def find(args):
     from sys import stdout
@@ -162,6 +168,8 @@ def main(args=None):
     plot_parser = subparsers.add_parser("plot")
     plot_parser.add_argument("image", type=Path, help="The image to process")
     plot_parser.add_argument("peaks", type=Path, help="The peaks to plot")
+    plot_parser.add_argument("--outfile", type=Path,
+                             help="Where to save the plot (omit to display)")
     plot_parser.set_defaults(func=plot)
 
     for p in (plot_parser, find_parser):
