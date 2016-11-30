@@ -125,8 +125,6 @@ def find(args):
     from tifffile import imread
 
     image = imread(str(args.image)).astype('float32')
-    if args.axes is not None:
-        image = image.sum(tuple(args.axes))
 
     scale = asarray(args.scale) if args.scale else ones(image.ndim, dtype='int')
     blobs = findBlobs(image, range(*args.size), args.threshold)
@@ -170,11 +168,11 @@ def main(args=None):
     plot_parser.add_argument("peaks", type=Path, help="The peaks to plot")
     plot_parser.add_argument("--outfile", type=Path,
                              help="Where to save the plot (omit to display)")
+    plot_parser.add_argument("--axes", type=int, nargs='+', default=None,
+                             help="The projection axes")
     plot_parser.set_defaults(func=plot)
 
     for p in (plot_parser, find_parser):
-        p.add_argument("--axes", type=int, nargs='+', default=None,
-                       help="The projection axes")
         p.add_argument("--scale", nargs="*", type=float,
                        help="The scale for the points along each axis.")
 
