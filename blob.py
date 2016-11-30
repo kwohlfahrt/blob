@@ -106,6 +106,9 @@ def plot(args):
     elif args.peaks.suffix == ".pickle":
         with args.peaks.open("rb") as f:
             peaks = load(f)
+    else:
+        raise ValueError("Unrecognized file type: '{}', need '.pickle' or '.csv'"
+                         .format(args.peaks.suffix))
 
     peaks = peaks / scale
     peaks = delete(peaks, args.axes, axis=1)
