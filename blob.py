@@ -4,6 +4,9 @@ from numpy import zeros, ones, asarray
 from numpy.linalg import norm
 from math import pi
 from scipy.ndimage.filters import gaussian_laplace
+from operator import contains
+from functools import partial
+from itertools import filterfalse
 
 def localMinima(data, threshold):
     from numpy import ones, roll, nonzero, transpose
@@ -91,11 +94,12 @@ def plot(args):
     from numpy import loadtxt, delete
     from pickle import load
     import matplotlib
+
     if args.outfile is not None:
         matplotlib.use('Agg')
     import matplotlib.pyplot as plt
 
-    image = imread(str(args.image))
+    image = imread(str(args.image)).T
     scale = asarray(args.scale) if args.scale else ones(image.ndim, dtype='int')
 
     if args.peaks.suffix == ".csv":
@@ -106,14 +110,14 @@ def plot(args):
     else:
         raise ValueError("Unrecognized file type: '{}', need '.pickle' or '.csv'"
                          .format(args.peaks.suffix))
-
     peaks = peaks / scale
-    if args.axes is not None:
-        image = image.max(tuple(args.axes))
-        peaks = delete(peaks, args.axes, axis=1)
+
+    proj_axes = tuple(filterfalse(partial(contains, args.axes), range(image.ndim)))
+    image = image.max(proj_axes)
+    peaks = delete(peaks, proj_axes, axis=1)
 
     fig, ax = plt.subplots(1, 1)
-    ax.imshow(image, cmap='gray')
+    ax.imshow(image.T, cmap='gray')
     ax.set_xticks([])
     ax.set_yticks([])
     ax.scatter(*peaks.T, edgecolor='red', facecolor='none')
@@ -173,8 +177,8 @@ def main(args=None):
     plot_parser.add_argument("peaks", type=Path, help="The peaks to plot")
     plot_parser.add_argument("--outfile", type=Path,
                              help="Where to save the plot (omit to display)")
-    plot_parser.add_argument("--axes", type=int, nargs='+', default=None,
-                             help="The projection axes")
+    plot_parser.add_argument("--axes", type=int, nargs=2, default=(0, 1),
+                             help="The axes to plot")
     plot_parser.set_defaults(func=plot)
 
     for p in (plot_parser, find_parser):
