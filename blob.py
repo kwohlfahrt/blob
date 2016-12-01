@@ -129,9 +129,9 @@ def find(args):
     image = imread(str(args.image)).astype('float32')
 
     scale = asarray(args.scale) if args.scale else ones(image.ndim, dtype='int')
-    blobs = findBlobs(image, range(*args.size), args.threshold)
-    blobs = blobs[peakEnclosed(blobs[:, 1:], shape=image.shape, size=args.edge)]
-    blobs = blobs[:, 1:][:, ::-1] # Remove scale, and reverse to xyz order
+    blobs = findBlobs(image, range(*args.size), args.threshold)[:, 1:] # Remove scale
+    blobs = blobs[peakEnclosed(blobs, shape=image.shape, size=args.edge)]
+    blobs = blobs[:, ::-1] # Reverse to xyz order
     blobs = blobs * scale
 
     if args.format == "csv":
