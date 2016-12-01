@@ -109,7 +109,7 @@ def plot(args):
 
     peaks = peaks / scale
     if args.axes is not None:
-        image = image.sum(tuple(args.axes))
+        image = image.max(tuple(args.axes))
         peaks = delete(peaks, args.axes, axis=1)
 
     fig, ax = plt.subplots(1, 1)
