@@ -3,22 +3,20 @@
 from numpy import zeros, ones, asarray
 from numpy.linalg import norm
 from math import pi
-from scipy.ndimage.filters import gaussian_laplace
+from scipy.ndimage.filters import gaussian_laplace, minimum_filter
 from operator import contains
 from functools import partial
 from itertools import filterfalse
 
 def localMinima(data, threshold):
-    from numpy import ones, roll, nonzero, transpose
+    from numpy import ones, nonzero, transpose
 
     if threshold is not None:
         peaks = data < threshold
     else:
         peaks = ones(data.shape, dtype=data.dtype)
 
-    for axis in range(data.ndim):
-        peaks &= data <= roll(data, -1, axis)
-        peaks &= data <= roll(data, 1, axis)
+    peaks &= data == minimum_filter(data, size=(3,) * data.ndim)
     return transpose(nonzero(peaks))
 
 def blobLOG(data, scales=range(1, 10, 1), threshold=-30):

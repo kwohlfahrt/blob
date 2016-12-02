@@ -9,7 +9,7 @@ class TestLocalMinima(TestCase):
         data[2:5, 3:6] = 1
         data[3, 4] = 0
         # Diagonal values considered peaks
-        expected = [[2, 3], [2, 5], [3, 4], [4, 3], [4, 5]]
+        expected = [[3, 4]]
         np.testing.assert_equal(blob.localMinima(data, 2), expected)
 
 class TestDetection(TestCase):
