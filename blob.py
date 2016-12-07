@@ -100,8 +100,10 @@ def plot(args):
     image = imread(str(args.image)).T
     scale = asarray(args.scale) if args.scale else ones(image.ndim, dtype='int')
 
-    if args.peaks.suffix == ".csv":
-        peaks = loadtxt(str(args.peaks))
+    if args.peaks.suffix == '.txt':
+        peaks = loadtxt(str(args.peaks), ndmin=2)
+    elif args.peaks.suffix == ".csv":
+        peaks = loadtxt(str(args.peaks), ndmin=2, delimiter=',')
     elif args.peaks.suffix == ".pickle":
         with args.peaks.open("rb") as f:
             peaks = load(f)
@@ -136,18 +138,22 @@ def find(args):
     blobs = blobs[:, ::-1] # Reverse to xyz order
     blobs = blobs * scale
 
-    if args.format == "csv":
-        import csv
-
-        writer = csv.writer(stdout, delimiter=' ')
-        for blob in blobs:
-            writer.writerow(blob)
-    elif args.format == "pickle":
+    if args.format == "pickle":
         from pickle import dump, HIGHEST_PROTOCOL
         from functools import partial
         dump = partial(dump, protocol=HIGHEST_PROTOCOL)
 
         dump(blobs, stdout.buffer)
+    else:
+        import csv
+
+        if args.format == 'txt':
+            delimiter = ' '
+        elif args.format == 'csv':
+            delimiter = ','
+        writer = csv.writer(stdout, delimiter=delimiter)
+        for blob in blobs:
+            writer.writerow(blob)
 
 # For setuptools entry_points
 def main(args=None):
@@ -164,7 +170,7 @@ def main(args=None):
                              help="The range of sizes (in px) to search.")
     find_parser.add_argument("--threshold", type=float, default=5,
                              help="The minimum spot intensity")
-    find_parser.add_argument("--format", choices={"csv", "pickle"}, default="csv",
+    find_parser.add_argument("--format", choices={"csv", "txt", "pickle"}, default="csv",
                              help="The output format (for stdout)")
     find_parser.add_argument("--edge", type=int, default=0,
                              help="Minimum distance to edge allowed.")
