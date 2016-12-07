@@ -124,6 +124,7 @@ def plot(args):
     if args.outfile is None:
         plt.show()
     else:
+        fig.tight_layout()
         fig.savefig(str(args.outfile))
 
 def find(args):
