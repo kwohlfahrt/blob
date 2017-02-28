@@ -67,9 +67,13 @@ def findBlobs(img, scales=range(1, 10), threshold=30, max_overlap=0.05):
     if positions.shape[1] == 2:
         intersections = circleIntersection(radii, radii.T, distances)
         volumes = pi * radii ** 2
-    if positions.shape[1] == 3:
+    elif positions.shape[1] == 3:
         intersections = sphereIntersection(radii, radii.T, distances)
         volumes = 4/3 * pi * radii ** 3
+    else:
+        raise ValueError("Invalid dimensions for position ({}), need 2 or 3."
+                         .format(positions.shape[1]))
+
     delete = ((intersections > (volumes * max_overlap))
               # Remove the smaller of the blobs
               & ((radii[:, None] < radii[None, :])
