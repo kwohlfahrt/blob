@@ -184,7 +184,7 @@ def main(args=None):
     plot_parser = subparsers.add_parser("plot")
     plot_parser.add_argument("image", type=Path, help="The image to process")
     plot_parser.add_argument("peaks", type=Path, help="The peaks to plot")
-    plot_parser.add_argument("--outfile", type=Path,
+    plot_parser.add_argument("outfile", nargs='?', type=Path, default=None,
                              help="Where to save the plot (omit to display)")
     plot_parser.add_argument("--axes", type=int, nargs=2, default=(0, 1),
                              help="The axes to plot")
