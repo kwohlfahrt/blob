@@ -17,14 +17,22 @@ out blob coordinates in CSV format, for example:
     382 311
     ...
 
-    
-The `--help` option provides details of available options.
-
 For convenience, a plotting function is also provided: `blob plot image.tif
 peaks.csv`.
 
 `demo.py` is provided in the source repository to give a visual example using
 the Hubble Deep Field image (from [scikit-image][skimage]) as sample data.
+
+### Options
+
+The common options to blob find are documented below:
+
+- `--threshold THRESHOLD`: The minimum filter response (proportional to
+  intensity) required to detect a blob.
+- `--size LOW HIGH`: The range of scales to search. The filter response will be
+  strongest when the size of the spot matches the size of the filter.
+
+The `--help` option provides details of all available options.
 
 # Installation
 
