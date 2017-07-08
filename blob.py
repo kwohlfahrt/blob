@@ -120,7 +120,7 @@ def plot(args):
     image = image.max(proj_axes)
     peaks = delete(peaks, proj_axes, axis=1)
 
-    fig, ax = plt.subplots(1, 1)
+    fig, ax = plt.subplots(1, 1, figsize=args.size)
     ax.imshow(image.T, cmap='gray')
     ax.set_xticks([])
     ax.set_yticks([])
@@ -188,6 +188,8 @@ def main(args=None):
                              help="Where to save the plot (omit to display)")
     plot_parser.add_argument("--axes", type=int, nargs=2, default=(0, 1),
                              help="The axes to plot")
+    plot_parser.add_argument("--size", type=float, nargs=2, default=(5, 5),
+                             help="The size of the figure (in inches)")
     plot_parser.set_defaults(func=plot)
 
     for p in (plot_parser, find_parser):
