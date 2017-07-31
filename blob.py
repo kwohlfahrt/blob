@@ -124,7 +124,7 @@ def plot(args):
     ax.imshow(image.T, cmap='gray')
     ax.set_xticks([])
     ax.set_yticks([])
-    ax.scatter(*peaks.T, edgecolor='red', facecolor='none')
+    ax.scatter(*peaks.T, edgecolor="C1", facecolor='none')
     if args.outfile is None:
         plt.show()
     else:
