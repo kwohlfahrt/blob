@@ -96,6 +96,9 @@ def plot(args):
     from numpy import loadtxt, delete
     from pickle import load
     import matplotlib
+    from mpl_toolkits.axes_grid.anchored_artists import AnchoredAuxTransformBox
+    from matplotlib.text import Text
+    from matplotlib.text import Line2D
 
     if args.outfile is not None:
         matplotlib.use('Agg')
@@ -125,6 +128,23 @@ def plot(args):
     ax.set_xticks([])
     ax.set_yticks([])
     ax.scatter(*peaks.T, edgecolor="C1", facecolor='none')
+
+    if args.scalebar is not None:
+        pixel, units, length = args.scalebar
+        pixel = float(pixel)
+        length = int(length)
+
+        box = AnchoredAuxTransformBox(ax.transData, loc=4)
+        box.patch.set_alpha(0.8)
+        bar = Line2D([-length/pixel/2, length/pixel/2], [0.0, 0.0], color='black')
+        box.drawing_area.add_artist(bar)
+        label = Text(
+            0.0, 0.0, "{} {}".format(length, units),
+            horizontalalignment="center", verticalalignment="bottom"
+        )
+        box.drawing_area.add_artist(label)
+        ax.add_artist(box)
+
     if args.outfile is None:
         plt.show()
     else:
@@ -190,6 +210,8 @@ def main(args=None):
                              help="The axes to plot")
     plot_parser.add_argument("--size", type=float, nargs=2, default=(5, 5),
                              help="The size of the figure (in inches)")
+    plot_parser.add_argument("--scalebar", type=str, nargs=3, default=None,
+                             help="The pixel-size, units and scalebar size")
     plot_parser.set_defaults(func=plot)
 
     for p in (plot_parser, find_parser):
