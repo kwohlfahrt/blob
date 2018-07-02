@@ -7,5 +7,8 @@ setup(name="blob",
       description="A tool for blob detection in .tif images",
       py_modules=['blob'],
       entry_points={'console_scripts': ['blob=blob:main']},
-      requires=['scipy (>=0.18.0)', 'numpy (>=1.10)', 'tifffile'],
+      install_requires=['scipy (>=0.18.0)', 'numpy (>=1.10)', 'tifffile'],
+      extras_require={
+          'plot': 'matplotlib (>=2.0)',
+      }
 )
